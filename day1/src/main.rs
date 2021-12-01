@@ -10,14 +10,17 @@ fn main() -> anyhow::Result<()> {
         .map(str::parse::<i64>)
         .collect::<Result<Vec<_>, _>>()?;
 
+    dbg!(part1(values).unwrap());
+
+    Ok(())
+}
+
+fn part1(v: Vec<i64>) -> Option<i64> {
     let mut answer = 0;
-    for a in values.windows(2) {
+    for a in v.windows(2) {
         if a[1] > a[0] {
             answer = answer + 1;
         }
     }
-
-    dbg!(answer);
-
-    Ok(())
+    Some(answer)
 }
