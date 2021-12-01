@@ -10,7 +10,8 @@ fn main() -> anyhow::Result<()> {
         .map(str::parse::<i64>)
         .collect::<Result<Vec<_>, _>>()?;
 
-    dbg!(part1(values).unwrap());
+    //dbg!(part1(values).unwrap());
+    dbg!(part2(values).unwrap());
 
     Ok(())
 }
@@ -23,4 +24,13 @@ fn part1(v: Vec<i64>) -> Option<i64> {
         }
     }
     Some(answer)
+}
+
+fn part2(v: Vec<i64>) -> Option<i64> {
+    let mut answer = 0;
+    let mut windows = Vec::<i64>::new();
+    for a in v.windows(3) {
+        windows.push(a.iter().sum());
+    }
+    Some(part1(windows).unwrap())
 }
