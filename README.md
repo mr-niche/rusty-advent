@@ -24,3 +24,4 @@ Ideas / tidbits / etc. from each (or some) days(s)
 
 ### Day 1: Sonar Sweep
  - Newlines!! Trim the last newline of the output! I'm positive this happened to me last year too...
+ - For a while I was fighting with a function called `tuple_combinations`, which I thought I wanted...but nope. I wanted `windows` instead. Reading the docs for a function (and looking at examples) is a smart thing to do. I'll learn eventually.
