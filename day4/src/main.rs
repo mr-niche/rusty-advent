@@ -44,7 +44,38 @@ impl BingoCard {
         }
     }
     fn is_winner(&self) -> bool {
+        let mut x_pos: Vec<u8> = Vec::new();
+        let mut y_pos: Vec<u8> = Vec::new();
+        for num in &self.bingo_card {
+            if num.called == true {
+                x_pos.push(num.pos.x);
+                y_pos.push(num.pos.y);
+            }
+        }
+
+        // Check if you have 5 of any particular x values
+        for i in 0..5 {
+            let x_s = x_pos.iter().filter(|&x| *x == i).count();
+            let y_s = y_pos.iter().filter(|&y| *y == i).count();
+            if x_s == 5 {
+                //println!("x_pos win");
+                return true;
+            }
+            if y_s == 5 {
+                //println!("y_pos win");
+                return true;
+            }
+        }
         false
+    }
+    fn score(&self) -> usize {
+        let mut score: usize = 0;
+        for num in &self.bingo_card {
+            if num.called == false {
+                score = score + usize::from(num.number);
+            }
+        }
+        score
     }
 }
 
@@ -76,13 +107,14 @@ impl From<(u8, u8)> for Position {
 fn main() -> anyhow::Result<()> {
     // Load input
     let example: Vec<&str> = include_str!("example").trim_end().split("\n\n").collect();
-    let _input: Vec<&str> = include_str!("input").trim_end().split("\n\n").collect();
+    let input: Vec<&str> = include_str!("input").trim_end().split("\n\n").collect();
 
     // Parse input for call_sequence, BingoCards
-    let bg: Option<BingoGame> = parse_input(example);
+    let bg: Option<BingoGame> = parse_input(input);
 
     // Now we have a bingo game, let's go through the call numbers!
     let winner = play_bingo(&mut bg.unwrap());
+    dbg!(winner);
 
     Ok(())
 }
@@ -124,9 +156,9 @@ fn parse_input(input: Vec<&str>) -> Option<BingoGame> {
     Some(bg)
 }
 
-fn play_bingo(bg: &mut BingoGame) -> Option<&mut BingoCard> {
+fn play_bingo(bg: &mut BingoGame) -> Option<usize> {
     for num in &bg.call_sequence {
-        println!("Calling...{}!", num);
+        //println!("Calling...{}!", num);
         for card in &mut bg.bingo_cards {
             for bn in &mut card.bingo_card {
                 if bn.number == *num {
@@ -135,8 +167,13 @@ fn play_bingo(bg: &mut BingoGame) -> Option<&mut BingoCard> {
                     break;
                 }
             }
+            if card.is_winner() {
+                println!("Winner with {}!", num);
+                card.print();
+                let last_called = usize::from(*num);
+                return Some(card.score() * last_called);
+            }
         }
-        println!();
     }
     None
 }
