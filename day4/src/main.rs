@@ -21,12 +21,16 @@ impl BingoGame {
 #[derive(PartialEq, Debug, Default)]
 struct BingoCard {
     bingo_card: Vec<BingoNumber>,
+    winner: bool,
 }
 
 impl BingoCard {
     fn new() -> BingoCard {
         let bc = Vec::new();
-        BingoCard { bingo_card: bc }
+        BingoCard {
+            bingo_card: bc,
+            winner: false,
+        }
     }
     fn push(&mut self, bn: BingoNumber) {
         self.bingo_card.push(bn)
@@ -43,7 +47,7 @@ impl BingoCard {
             }
         }
     }
-    fn is_winner(&self) -> bool {
+    fn is_winner(&mut self) -> bool {
         let mut x_pos: Vec<u8> = Vec::new();
         let mut y_pos: Vec<u8> = Vec::new();
         for num in &self.bingo_card {
@@ -59,10 +63,12 @@ impl BingoCard {
             let y_s = y_pos.iter().filter(|&y| *y == i).count();
             if x_s == 5 {
                 //println!("x_pos win");
+                self.winner = true;
                 return true;
             }
             if y_s == 5 {
                 //println!("y_pos win");
+                self.winner = true;
                 return true;
             }
         }
@@ -160,18 +166,22 @@ fn play_bingo(bg: &mut BingoGame) -> Option<usize> {
     for num in &bg.call_sequence {
         //println!("Calling...{}!", num);
         for card in &mut bg.bingo_cards {
-            for bn in &mut card.bingo_card {
-                if bn.number == *num {
-                    // Update the card, don't finish checking number
-                    bn.called();
-                    break;
+            if card.winner == false {
+                for bn in &mut card.bingo_card {
+                    if bn.number == *num {
+                        // Update the card, don't finish checking number
+                        bn.called();
+                        break;
+                    }
                 }
-            }
-            if card.is_winner() {
-                println!("Winner with {}!", num);
-                card.print();
-                let last_called = usize::from(*num);
-                return Some(card.score() * last_called);
+                if card.is_winner() {
+                    println!("Winner with {}!", num);
+                    card.print();
+                    let last_called = usize::from(*num);
+                    println!("Score: {}", card.score() * last_called);
+                    println!();
+                    //return Some(card.score() * last_called);
+                }
             }
         }
     }
