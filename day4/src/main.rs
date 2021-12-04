@@ -4,14 +4,17 @@
 #[derive(PartialEq, Debug, Default)]
 struct BingoGame {
     call_sequence: Vec<u8>,
-    //bingo_cards: Vec<BingoCard>,
+    bingo_cards: Vec<BingoCard>,
 }
 
 impl BingoGame {
-    pub fn new() -> BingoGame {
-        // Call Sequence init
+    fn new() -> BingoGame {
         let cs = Vec::new();
-        BingoGame { call_sequence: cs }
+        let bc = Vec::new();
+        BingoGame {
+            call_sequence: cs,
+            bingo_cards: bc,
+        }
     }
 }
 
@@ -20,14 +23,25 @@ struct BingoCard {
     bingo_card: Vec<BingoNumber>,
 }
 
-#[derive(PartialEq, Debug)]
+impl BingoCard {
+    fn new() -> BingoCard {
+        let bc = Vec::new();
+        BingoCard { bingo_card: bc }
+    }
+    fn push(&mut self, bn: BingoNumber) -> &Self {
+        self.bingo_card.push(bn);
+        self
+    }
+}
+
+#[derive(PartialEq, Debug, Default)]
 struct BingoNumber {
     number: u8,
     pos: Position,
     called: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 struct Position {
     x: u8,
     y: u8,
@@ -42,11 +56,10 @@ impl From<(u8, u8)> for Position {
 fn main() -> anyhow::Result<()> {
     // Load input
     let example: Vec<&str> = include_str!("example").trim_end().split("\n\n").collect();
-    let input: Vec<&str> = include_str!("input").trim_end().split("\n\n").collect();
+    let _input: Vec<&str> = include_str!("input").trim_end().split("\n\n").collect();
 
     // Parse input for call_sequence, BingoCards
-    let bg = parse_input(example);
-    dbg!(bg);
+    let _bg = parse_input(example);
 
     //dbg!(example);
 
@@ -66,7 +79,28 @@ fn parse_input(input: Vec<&str>) -> Option<BingoGame> {
         bg.call_sequence.push(num.parse::<u8>().unwrap());
     }
 
-    None
+    for card in input.iter().skip(1) {
+        // Create a card
+        let mut bc = BingoCard::new();
+        let mut x = 0;
+        let mut y = 0;
+        for line in card.split('\n') {
+            for num in line.split_whitespace().collect::<Vec<&str>>() {
+                // Create a Bingo number!
+                let bn = BingoNumber {
+                    number: num.parse::<u8>().unwrap(),
+                    pos: (x, y).into(),
+                    called: false,
+                };
+                bc.push(bn);
+                x = x + 1;
+            }
+            y = y + 1;
+            x = 0;
+        }
+    }
+
+    Some(bg)
 }
 
 // TESTS!
