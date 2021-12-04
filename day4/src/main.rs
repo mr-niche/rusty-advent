@@ -31,14 +31,6 @@ impl BingoCard {
     fn push(&mut self, bn: BingoNumber) {
         self.bingo_card.push(bn)
     }
-    fn play(&mut self, called: u8) {
-        for num in &self.bingo_card {
-            if num.number == called {
-                println!("Found {}", called);
-                return;
-            }
-        }
-    }
     fn print(&self) {
         let mut y = 0;
         for num in &self.bingo_card {
@@ -51,6 +43,9 @@ impl BingoCard {
             }
         }
     }
+    fn is_winner(&self) -> bool {
+        false
+    }
 }
 
 #[derive(PartialEq, Debug, Default)]
@@ -58,6 +53,12 @@ struct BingoNumber {
     number: u8,
     pos: Position,
     called: bool,
+}
+
+impl BingoNumber {
+    fn called(&mut self) {
+        self.called = true
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -79,10 +80,9 @@ fn main() -> anyhow::Result<()> {
 
     // Parse input for call_sequence, BingoCards
     let bg: Option<BingoGame> = parse_input(example);
-    //dbg!(bg);
 
     // Now we have a bingo game, let's go through the call numbers!
-    let winner = play_bingo(&bg.unwrap());
+    let winner = play_bingo(&mut bg.unwrap());
 
     Ok(())
 }
@@ -124,14 +124,19 @@ fn parse_input(input: Vec<&str>) -> Option<BingoGame> {
     Some(bg)
 }
 
-fn play_bingo(bg: &BingoGame) -> Option<BingoCard> {
+fn play_bingo(bg: &mut BingoGame) -> Option<&mut BingoCard> {
     for num in &bg.call_sequence {
         println!("Calling...{}!", num);
-        for card in &bg.bingo_cards {
-            card.print();
-            println!();
-            //dbg!(board);
+        for card in &mut bg.bingo_cards {
+            for bn in &mut card.bingo_card {
+                if bn.number == *num {
+                    // Update the card, don't finish checking number
+                    bn.called();
+                    break;
+                }
+            }
         }
+        println!();
     }
     None
 }
@@ -142,4 +147,12 @@ fn test_build_position() {
     let p: Position = (0, 5).into();
     assert_eq!(p.x, 0);
     assert_eq!(p.y, 5);
+}
+
+#[test]
+fn test_bingo_number_called() {
+    let mut bn: BingoNumber = { BingoNumber::default() };
+    assert_eq!(bn.called, false);
+    bn.called();
+    assert_eq!(bn.called, true);
 }
