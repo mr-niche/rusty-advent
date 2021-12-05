@@ -101,12 +101,12 @@ impl OceanField {
 
 fn main() -> anyhow::Result<()> {
     let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
-    let _input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
+    let input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
 
     let mut vents: Vec<Vent> = Vec::new();
     let mut big_x: isize = 0;
     let mut big_y: isize = 0;
-    for line in example {
+    for line in input {
         let vent = line.split(" -> ").collect::<Vec<&str>>();
         // Get Point a
         let a = vent[0]
@@ -153,7 +153,6 @@ fn main() -> anyhow::Result<()> {
             ocean_field.field.push(0);
         }
     }
-    //ocean_field.print();
 
     // Now, iterate through our vents (the flat ones), and update the field
     for vent in vents {
@@ -166,6 +165,15 @@ fn main() -> anyhow::Result<()> {
         }
     }
     ocean_field.print();
+
+    // Count!
+    let mut sum = 0;
+    for val in ocean_field.field {
+        if val > 1 {
+            sum = sum + 1;
+        }
+    }
+    println!("Sum: {}", sum);
 
     Ok(())
 }
