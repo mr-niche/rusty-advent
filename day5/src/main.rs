@@ -14,16 +14,57 @@ impl Vent {
         }
         false
     }
+    fn get_points(&self) -> Vec<Point> {
+        // Get the points contained between two points
+        let rise = self.b.y - self.a.y;
+        let run = self.b.x - self.a.x;
+        let mut points: Vec<Point> = Vec::new();
+
+        // Case 1: We have a vertical line, where our equation becomes 'x = ?'
+        // Case 2: We have a horizontal line, where our equation becomes 'y = ?'
+        // Case 3: We have a diagonal of some sort, where our equation becomes 'y = mx + b'
+
+        // Case 1
+        if run == 0 {
+            let x = self.a.x;
+            if rise > 0 {
+                for y in self.a.y..self.b.y + 1 {
+                    points.push((x, y).into());
+                }
+            } else {
+                for y in self.b.y..self.a.y + 1 {
+                    points.push((x, y).into());
+                }
+            }
+            return points;
+        }
+        // Case 2
+        if rise == 0 {
+            let y = self.a.y;
+            if run > 0 {
+                for x in self.a.x..self.b.x + 1 {
+                    points.push((x, y).into());
+                }
+            } else {
+                for x in self.b.x..self.a.x + 1 {
+                    points.push((x, y).into());
+                }
+            }
+            return points;
+        }
+        // Case 3 TODO
+        points
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 struct Point {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
-impl From<(usize, usize)> for Point {
-    fn from((x, y): (usize, usize)) -> Self {
+impl From<(isize, isize)> for Point {
+    fn from((x, y): (isize, isize)) -> Self {
         Self { x, y }
     }
 }
@@ -36,26 +77,25 @@ struct OceanField {
 }
 
 impl OceanField {
-    fn new() -> OceanField {
-        let of = Vec::new();
-        OceanField {
-            origin: Point::default(),
-            extent: Point::default(),
-            field: of,
-        }
-    }
     fn print(&self) {
-        for i in 0..self.extent.y {
-            for j in 0..self.extent.x {
-                let val = self.field.iter().next().unwrap();
-                if *val == 0 {
+        let width = self.extent.x + 1;
+        let height = self.extent.y + 1;
+        for y in 0..height {
+            for x in 0..width {
+                let index: usize = ((y * width) + x).try_into().unwrap();
+                let val = self.field[index];
+                if val == 0 {
                     print!(".");
                 } else {
-                    println!("{}", val);
+                    print!("{}", val);
                 }
             }
             println!();
         }
+    }
+    fn update_field(&mut self, index: usize) {
+        let cur_val = self.field.get(index);
+        self.field[index] = cur_val.unwrap() + 1;
     }
 }
 
@@ -64,23 +104,23 @@ fn main() -> anyhow::Result<()> {
     let _input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
 
     let mut vents: Vec<Vent> = Vec::new();
-    let mut big_x: usize = 0;
-    let mut big_y: usize = 0;
+    let mut big_x: isize = 0;
+    let mut big_y: isize = 0;
     for line in example {
         let vent = line.split(" -> ").collect::<Vec<&str>>();
         // Get Point a
         let a = vent[0]
             .split(",")
-            .map(str::parse::<usize>)
+            .map(str::parse::<isize>)
             .map(Result::unwrap)
-            .collect::<Vec<usize>>();
+            .collect::<Vec<isize>>();
 
         // Get Point b
         let b = vent[1]
             .split(",")
-            .map(str::parse::<usize>)
+            .map(str::parse::<isize>)
             .map(Result::unwrap)
-            .collect::<Vec<usize>>();
+            .collect::<Vec<isize>>();
 
         // Create a Vent!
         vents.push(Vent {
@@ -102,21 +142,30 @@ fn main() -> anyhow::Result<()> {
             big_y = b[1];
         }
     }
-    //dbg!(vents);
 
     // Create an Ocean Field, and fill it up with 0s
     let mut ocean_field = OceanField::default();
     ocean_field.origin = (0, 0).into();
     ocean_field.extent = (big_x, big_y).into();
 
-    for i in 0..big_y {
-        for j in 0..big_x {
+    for _i in 0..big_y + 1 {
+        for _j in 0..big_x + 1 {
             ocean_field.field.push(0);
         }
     }
-    ocean_field.print();
+    //ocean_field.print();
 
     // Now, iterate through our vents (the flat ones), and update the field
+    for vent in vents {
+        if vent.is_flat() {
+            // Update the field
+            for point in vent.get_points() {
+                let index: usize = ((point.y * (big_x + 1)) + point.x).try_into().unwrap();
+                ocean_field.update_field(index);
+            }
+        }
+    }
+    ocean_field.print();
 
     Ok(())
 }
