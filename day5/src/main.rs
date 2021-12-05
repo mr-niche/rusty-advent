@@ -154,7 +154,7 @@ fn main() -> anyhow::Result<()> {
     let mut vents: Vec<Vent> = Vec::new();
     let mut big_x: isize = 0;
     let mut big_y: isize = 0;
-    for line in example {
+    for line in input {
         let vent = line.split(" -> ").collect::<Vec<&str>>();
         // Get Point a
         let a = vent[0]
