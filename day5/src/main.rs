@@ -18,6 +18,12 @@ impl Vent {
         // Get the points contained between two points
         let rise = self.b.y - self.a.y;
         let run = self.b.x - self.a.x;
+        let mut slope = 0;
+        if rise != 0 {
+            // Inverse our rise because it goes down
+            slope = run / rise;
+        }
+
         let mut points: Vec<Point> = Vec::new();
 
         // Case 1: We have a vertical line, where our equation becomes 'x = ?'
@@ -52,7 +58,49 @@ impl Vent {
             }
             return points;
         }
-        // Case 3 TODO
+        // Case 3 (we only care about slope of 1)
+        // Example: 0,0 -> 1,1 -> 2,2 ... 8,8
+        // Example: 6,4 -> 5,3 -> 4,2 -> 3,1 -> 2,0
+        if slope == 1 {
+            let mut y = self.a.y;
+            // Increment x and y
+            if self.a.x < self.b.x {
+                for x in self.a.x..self.b.x + 1 {
+                    points.push((x, y).into());
+                    y = y + 1;
+                }
+            }
+            // Decrement x and y
+            else {
+                y = self.b.y;
+                for x in self.b.x..self.a.x + 1 {
+                    points.push((x, y).into());
+                    y = y + 1;
+                }
+            }
+            return points;
+        }
+        // Example: 5,5 -> 6,4 -> 7,3 -> 8,2
+        // Example: 8,0 -> 7,1 -> 6,2 ... 0,8
+        if slope == -1 {
+            let mut y = self.a.y;
+            // Increment x and decrement y
+            if self.a.x < self.b.x {
+                for x in self.a.x..self.b.x + 1 {
+                    points.push((x, y).into());
+                    y = y - 1;
+                }
+            }
+            // Decrement x and increment y
+            else {
+                y = self.b.y;
+                for x in self.b.x..self.a.x + 1 {
+                    points.push((x, y).into());
+                    y = y - 1;
+                }
+            }
+            return points;
+        }
         points
     }
 }
@@ -106,7 +154,7 @@ fn main() -> anyhow::Result<()> {
     let mut vents: Vec<Vent> = Vec::new();
     let mut big_x: isize = 0;
     let mut big_y: isize = 0;
-    for line in input {
+    for line in example {
         let vent = line.split(" -> ").collect::<Vec<&str>>();
         // Get Point a
         let a = vent[0]
@@ -156,12 +204,10 @@ fn main() -> anyhow::Result<()> {
 
     // Now, iterate through our vents (the flat ones), and update the field
     for vent in vents {
-        if vent.is_flat() {
-            // Update the field
-            for point in vent.get_points() {
-                let index: usize = ((point.y * (big_x + 1)) + point.x).try_into().unwrap();
-                ocean_field.update_field(index);
-            }
+        // Update the field
+        for point in vent.get_points() {
+            let index: usize = ((point.y * (big_x + 1)) + point.x).try_into().unwrap();
+            ocean_field.update_field(index);
         }
     }
     ocean_field.print();
