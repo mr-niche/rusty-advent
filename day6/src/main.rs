@@ -17,7 +17,7 @@ fn main() -> anyhow::Result<()> {
         .collect();
 
     let mut school_of_fish: Vec<usize> = Vec::new();
-    for age in example {
+    for age in input {
         school_of_fish.push(age);
     }
 
@@ -30,26 +30,42 @@ fn main() -> anyhow::Result<()> {
 
     // Start our total with our inital # of fish
     let mut total = school_of_fish.len();
+    println!("Start with {} fish...", total);
+    println!();
     for fish in school_of_fish {
-        total = total + future_fish(fish, 80);
+        println!("Init: {}", fish);
+        let this_fish = future_fish(fish, 80 + 1);
+        total = total + this_fish;
+        println!("fish produced {}", this_fish);
+        println!();
     }
 
-    println!("Total: {}", total);
+    println!("...end with: {} !", total);
 
     Ok(())
 }
 
-fn future_fish(init: usize, days: usize) -> usize {
+fn future_fish(mut age: usize, mut days: usize) -> usize {
     let mut acc = 0;
-    let mut clock = init;
-    for i in 1..days + 1 {
-        match clock {
-            0 => {
-                acc = acc + 1;
-                clock = 6;
-                acc = acc + future_fish(8, days - i);
+
+    //println!("future_fish({}, {})", age, days);
+    if days >= age {
+        let mut num = 0;
+
+        if age == 8 {
+            num = (days - 3) / 7;
+        } else {
+            num = (days + (5 - age)) / 7;
+        }
+
+        acc = acc + num;
+
+        // But how many will _those_ fish produce??
+        for i in 0..num {
+            let remaining = days - (age + 1) - (7 * i);
+            if remaining > 0 {
+                acc = acc + future_fish(8, remaining);
             }
-            _ => clock = clock - 1,
         }
     }
     acc
