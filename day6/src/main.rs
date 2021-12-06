@@ -1,30 +1,6 @@
 // Author: Nicholas LaJoie
 // Advent of Code, Day 6
 
-#[derive(PartialEq, Debug, Default)]
-struct LanternFish {
-    init: usize,
-    age: usize,
-}
-
-impl LanternFish {
-    fn new(i: usize) -> LanternFish {
-        LanternFish { init: i, age: i }
-    }
-    fn update(&mut self) -> Option<LanternFish> {
-        match self.age {
-            0 => {
-                self.age = 6;
-                return Some(LanternFish::new(8));
-            }
-            _ => {
-                self.age = self.age - 1;
-                return None;
-            }
-        }
-    }
-}
-
 fn main() -> anyhow::Result<()> {
     let example: Vec<usize> = include_str!("example")
         .trim_end()
@@ -40,47 +16,41 @@ fn main() -> anyhow::Result<()> {
         .map(Result::unwrap)
         .collect();
 
-    let mut school_of_fish: Vec<LanternFish> = Vec::new();
-    for age in input {
-        school_of_fish.push(LanternFish::new(age));
+    let mut school_of_fish: Vec<usize> = Vec::new();
+    for age in example {
+        school_of_fish.push(age);
     }
 
     // Print initial state
     print!("Initial state: ");
     for fish in &school_of_fish {
-        print!("{},", fish.age);
+        print!("{},", fish);
     }
     println!();
 
-    // For each day...
-    for day in 1..81 {
-        let mut newbies: Vec<LanternFish> = Vec::new();
-        // For all fish...
-        for fish in &mut school_of_fish {
-            let new_fish: Option<LanternFish> = fish.update();
-            if new_fish.is_some() {
-                newbies.push(new_fish.unwrap());
-            }
-        }
-        for n in newbies {
-            school_of_fish.push(n);
-        }
-        //print_school(&school_of_fish, day);
-        println!("Day {}: {}", day, &school_of_fish.len());
+    // Start our total with our inital # of fish
+    let mut total = school_of_fish.len();
+    for fish in school_of_fish {
+        total = total + future_fish(fish, 80);
     }
+
+    println!("Total: {}", total);
 
     Ok(())
 }
 
-fn print_school(school: &Vec<LanternFish>, day: usize) {
-    if day == 1 {
-        print!("After {} day: ", day);
-    } else {
-        print!("After {} days: ", day);
+fn future_fish(init: usize, days: usize) -> usize {
+    let mut acc = 0;
+    let mut clock = init;
+    for i in 1..days + 1 {
+        match clock {
+            0 => {
+                acc = acc + 1;
+                clock = 6;
+                acc = acc + future_fish(8, days - i);
+            }
+            _ => clock = clock - 1,
+        }
     }
-
-    for fish in school {
-        print!("{},", fish.age);
-    }
-    println!();
+    acc
 }
