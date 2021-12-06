@@ -1,67 +1,132 @@
 // Author: Nicholas LaJoie
 // Advent of Code, Day 3
 
-use itertools::Itertools;
-
 fn main() -> anyhow::Result<()> {
-    let keep = ['1', '0'].iter();
-    let mut example = include_str!("input")
-        .trim_end()
-        .chars()
-        .collect::<Vec<char>>();
+    let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
+    let input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
 
-    let mut bit_stream: Vec<u64> = Vec::new();
-    for e in example {
-        if e == '1' {
-            bit_stream.push(1);
-        } else if e == '0' {
-            bit_stream.push(0);
-        }
-    }
+    //dbg!(example);
+    let oxy_rating = oxygen_rating(&input);
+    let co2_rating = co2_rating(&input);
 
-    dbg!(p1_calc(bit_stream, 12));
+    // Each line is a "bite", example: "00100"
+    println!("Result: {}", oxy_rating.unwrap() * co2_rating.unwrap());
 
     Ok(())
 }
 
-fn p1_calc(values: Vec<u64>, size: usize) -> Option<u64> {
-    // gamma rate = most common bit across all bits
-    // epsilon rate = least common bit across all bits
+// For Oxygen Generator Rating, per bit position:
+// 1. Keep bites that start w/most common bit
+// 2. If equal, keep bites that start w/1
+fn oxygen_rating(bites: &Vec<&str>) -> Option<u64> {
+    let mut keepers: Vec<&str> = Vec::new();
+    let bite_width = bites[0].len();
 
-    // How many total values in a single column exist?
-    let threshold: u64 = ((values.len() / size) / 2).try_into().unwrap();
+    // Copy the bites
+    for b in bites {
+        keepers.push(b);
+    }
 
-    let mut gamma: Vec<u64> = Vec::new();
-    let mut epsilon: Vec<u64> = Vec::new();
-    for group in 0..size {
-        let ones: u64 = values.iter().skip(group).step_by(size).sum();
-        if ones > threshold {
-            gamma.push(1);
-            epsilon.push(0);
-        } else {
-            gamma.push(0);
-            epsilon.push(1);
+    // Outer loop - each bit field (0 -> bite_width)
+    for bit_position in 0..bite_width {
+        // Inner loop - determine most common bit
+        let mut ones = 0;
+        let mut mcb = "0";
+
+        // Stop if we only have one keeper left
+        if keepers.len() == 1 {
+            break;
+        }
+
+        for b in &keepers {
+            if b.get(bit_position..bit_position + 1).unwrap() == "1" {
+                ones = ones + 1;
+            }
+        }
+        if ones >= (keepers.len() - ones) {
+            mcb = "1";
+        }
+
+        // And then remove the bites that _don't_ start w/that bit
+        let mut remove_these: Vec<usize> = Vec::new();
+        for (index, k) in keepers.iter().enumerate() {
+            if k.get(bit_position..bit_position + 1).unwrap() != mcb {
+                remove_these.push(index);
+            }
+        }
+        for i in remove_these.iter().rev() {
+            keepers.remove(*i);
         }
     }
 
-    let mut gamma_dec = 0;
-    let mut epsilon_dec = 0;
+    // Convert to decimal!
+    let mut result = 0;
+    let keeper = keepers[0];
     let base: u64 = 2;
-    let mut pos: u64 = (size - 1).try_into().unwrap();
-    for i in gamma {
-        gamma_dec = gamma_dec + (i * base.pow(pos.try_into().unwrap()));
-        if pos > 0 {
-            pos = pos - 1;
+    for pos in 0..bite_width {
+        let power: u32 = (bite_width - pos - 1).try_into().unwrap();
+        if keeper.get(pos..pos + 1).unwrap() == "1" {
+            result = result + base.pow(power);
         }
     }
-    pos = (size - 1).try_into().unwrap();
-    for i in epsilon {
-        epsilon_dec = epsilon_dec + (i * base.pow(pos.try_into().unwrap()));
-        if pos > 0 {
-            pos = pos - 1;
+    dbg!(&keeper);
+    Some(result)
+}
+
+// For CO2 Scrubber Rating, per bit position:
+// 1. Keep bites that start w/least common bit
+// 2. If equal, keep bites that start w/0
+fn co2_rating(bites: &Vec<&str>) -> Option<u64> {
+    let mut keepers: Vec<&str> = Vec::new();
+    let bite_width = bites[0].len();
+
+    // Copy the bites
+    for b in bites {
+        keepers.push(b);
+    }
+
+    // Outer loop - each bit field (0 -> bite_width)
+    for bit_position in 0..bite_width {
+        // Inner loop - determine most common bit
+        let mut ones = 0;
+        let mut lcb = "0";
+
+        // Stop if we only have one keeper left
+        if keepers.len() == 1 {
+            break;
+        }
+
+        for b in &keepers {
+            if b.get(bit_position..bit_position + 1).unwrap() == "1" {
+                ones = ones + 1;
+            }
+        }
+        if ones < (keepers.len() - ones) {
+            lcb = "1";
+        }
+
+        // And then remove the bites that _don't_ start w/that bit
+        let mut remove_these: Vec<usize> = Vec::new();
+        for (index, k) in keepers.iter().enumerate() {
+            if k.get(bit_position..bit_position + 1).unwrap() != lcb {
+                remove_these.push(index);
+            }
+        }
+        for i in remove_these.iter().rev() {
+            keepers.remove(*i);
         }
     }
-    dbg!(gamma_dec);
-    dbg!(epsilon_dec);
-    Some(gamma_dec * epsilon_dec)
+
+    // Convert to decimal!
+    let mut result = 0;
+    let keeper = keepers[0];
+    let base: u64 = 2;
+    for pos in 0..bite_width {
+        let power: u32 = (bite_width - pos - 1).try_into().unwrap();
+        if keeper.get(pos..pos + 1).unwrap() == "1" {
+            result = result + base.pow(power);
+        }
+    }
+    dbg!(&keeper);
+    Some(result)
 }
