@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
     dbg!(max_val);
 
     // Calculate all fuel usage
-    let mut min_usage = max_val * max_val;
+    let mut min_usage = 10000000000000000;
     for v in *min_val..*max_val {
         let fuel = fuel_usage(&input, v);
         if fuel < min_usage {
@@ -42,8 +42,10 @@ fn main() -> anyhow::Result<()> {
 fn fuel_usage(vals: &Vec<isize>, pos: isize) -> isize {
     let mut acc = 0;
     for v in vals {
-        acc = acc + (pos - v).abs();
-        //println!("    acc: {}", acc);
+        let mut traveled = (pos - v).abs();
+        for i in 1..traveled + 1 {
+            acc = acc + i;
+        }
     }
     acc
 }
