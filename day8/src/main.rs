@@ -177,21 +177,34 @@ impl<'a> Entry<'a> {
             }
         }
 
-        dbg!(digits);
-
-        // THIS IS WRONG: 6 is 8 - 7 + 'a'
-        //let mut six: Vec<char> = Vec::new();
-        //for c in eight.chars() {
-        //    if !seven.contains(c) {
-        //        six.push(c);
-        //    }
-        //}
-        //println!("{} - {} = {}", eight, seven, six.iter().collect::<String>());
-        //six.push(side_a);
-        //println!("Six = {}", six.iter().collect::<String>());
+        //dbg!(digits);
 
         // Step 3, join those digits together into a single value
-        0
+        let mut converted_digits = Vec::new();
+        for d in &self.digits {
+            for i in 0..10 {
+                let cur_val = digits.get(&i).unwrap().clone();
+                let mut count = 0;
+                if d.len() == cur_val.len() {
+                    //println!("{} might be {} ({})", d, cur_val, i);
+                    for c in d.chars() {
+                        if cur_val.contains(c) {
+                            count = count + 1;
+                        }
+                    }
+                }
+                if count == d.len() {
+                    //println!("{} is {} ({})!", d, cur_val, i);
+                    converted_digits.push(i);
+                    break;
+                }
+            }
+        }
+        let result = (converted_digits[0] * 1000)
+            + (converted_digits[1] * 100)
+            + (converted_digits[2] * 10)
+            + converted_digits[3];
+        result
     }
 }
 
@@ -201,7 +214,7 @@ fn main() -> anyhow::Result<()> {
 
     // Collect our input into an organized data structure
     let mut entries: Vec<Entry> = Vec::new();
-    for line in example {
+    for line in input {
         let components: Vec<&str> = line.split(" | ").collect();
         if components.len() == 2 {
             let s: Vec<&str> = components[0].split_whitespace().collect();
