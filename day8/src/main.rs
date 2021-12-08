@@ -7,6 +7,30 @@ struct Entry<'a> {
     digits: Vec<&'a str>,
 }
 
+impl<'a> Entry<'a> {
+    fn decode(&self) -> usize {
+        let digit_lookup = vec![
+            0b0111_0111, // 0
+            0b0001_0010, // 1
+            0b0101_1101, // 2
+            0b0101_1011, // 3
+            0b0011_0010, // 4
+            0b0110_1011, // 5
+            0b0110_1111, // 6
+            0b0101_0010, // 7
+            0b0111_1111, // 8
+            0b0111_1011, // 9
+        ];
+
+        0
+        // Step 1, parse signals and determine mapping
+
+        // Step 2, use mapping to decode digits
+
+        // Step 3, join those digits together into a single value
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
     let input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
@@ -28,15 +52,7 @@ fn main() -> anyhow::Result<()> {
     // Figure this sh*t out
     let mut acc = 0;
     for e in entries {
-        for d in e.digits {
-            match d.len() {
-                2 => acc = acc + 1,
-                3 => acc = acc + 1,
-                4 => acc = acc + 1,
-                7 => acc = acc + 1,
-                _ => continue,
-            }
-        }
+        acc = acc + e.decode();
     }
 
     dbg!(acc);
