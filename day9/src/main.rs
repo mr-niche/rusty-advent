@@ -2,24 +2,27 @@
 // Advent of Code, Day 9
 
 fn main() -> anyhow::Result<()> {
-    let _example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
-    let input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
+    let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
+    let _input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
 
     // Let's make a 2D Vec
     let mut field: Vec<Vec<u32>> = Vec::new();
-    for nums in input {
+    for nums in example {
         field.push(nums.chars().map(|d| d.to_digit(10).unwrap()).collect());
     }
 
-    let result = get_lows(&field);
-    dbg!(result);
+    // Get a vector of low-point coordinates
+    let lows = get_lows(&field);
+
+    // TODO: Find. Those. Basins!
 
     Ok(())
 }
 
-fn get_lows(field: &Vec<Vec<u32>>) -> u32 {
+// Return a vector of low point coordinates
+fn get_lows(field: &Vec<Vec<u32>>) -> Vec<(usize, usize)> {
+    let mut lows: Vec<(usize, usize)> = Vec::new();
     // Iterate through rows
-    let mut acc = 0;
     for (row, val) in field.iter().enumerate() {
         for (col, digit) in val.iter().enumerate() {
             let mut neighbors: Vec<u32> = Vec::new();
@@ -41,9 +44,9 @@ fn get_lows(field: &Vec<Vec<u32>>) -> u32 {
             }
             // Check it
             if digit < neighbors.iter().min().unwrap() {
-                acc = acc + digit + 1;
+                lows.push((row, col));
             }
         }
     }
-    acc
+    lows
 }
