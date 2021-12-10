@@ -2,91 +2,63 @@
 // Advent of Code, Day 9
 
 fn main() -> anyhow::Result<()> {
-    // Process our input so we have a stream of integers & height & width
-    let e: Vec<_> = include_str!("example").trim_end().split('\n').collect();
-    let width: usize = e[0].chars().count();
+    let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
 
-    // Let's get creative...
-    let mut field: Vec<isize> = Vec::new();
-
-    // Build a box around the field with '-1's
-    for i in 0..width + 2 {
-        field.push(-1);
-    }
-    for line in e {
-        field.push(-1);
-        for d in line.chars() {
-            field.push(d.to_digit(10).unwrap().try_into().unwrap());
-        }
-        field.push(-1);
-    }
-    for i in 0..width + 2 {
-        field.push(-1);
+    // Let's make a 2D Vec
+    let mut field: Vec<Vec<u32>> = Vec::new();
+    for nums in example {
+        field.push(nums.chars().map(|d| d.to_digit(10).unwrap()).collect());
     }
 
-    dbg!(&field);
-    dbg!(field.len());
-
-    let input: Vec<u32> = include_str!("input")
-        .trim_end()
-        .chars()
-        .filter(|c| *c != '\n')
-        .map(|d| d.to_digit(10).unwrap())
-        .collect();
-
-    //let result = process_lows(&input, &width);
-    //dbg!(result);
+    let result = get_lows(&field);
 
     Ok(())
 }
 
-fn wrap_field(field: &Vec<&str>) -> Option<Vec<isize>> {
-    let new_field: Vec<isize> = Vec::new();
-
-    let width: usize = field[0].chars().count();
-}
-
-fn process_lows(stream: &Vec<u32>, width: &usize) -> u32 {
-    // Don't check left or above if element is 0
-    // Don't check left if element is multiple of width (10, 20, etc.)
-    // Don't check above if element is less than width
-    // Don't check right if element is multiple of width (9, 19, 29)
-    // Don't check below if (element + width) > num_elements
-    let mut acc: u32 = 0;
-    for (index, val) in stream.iter().enumerate() {
-        let mut is_low = true;
-
-        // ABOVE
-        if index >= *width {
-            if val >= &stream[index - width] {
-                is_low = false;
+fn get_lows(field: &Vec<Vec<u32>>) -> u32 {
+    // Iterate through rows
+    let mut acc = 0;
+    for (row, val) in field.iter().enumerate() {
+        for (col, digit) in val.iter().enumerate() {
+            let mut is_low = true;
+            println!("{}:{} = {}", row, col, digit);
+            // Go left
+            if !(col == 0) {
+                println!(
+                    "  Left: Check {}:{} = {}",
+                    row,
+                    col - 1,
+                    val.get(col - 1).unwrap()
+                );
             }
-        }
-
-        // BELOW
-        if (index + width) < stream.len() {
-            if val >= &stream[index + width] {
-                is_low = false;
+            // Go up
+            if !(row == 0) {
+                println!(
+                    "  Up:   Check {}:{} = {}",
+                    row - 1,
+                    col,
+                    field[row - 1].get(col).unwrap()
+                );
             }
-        }
-
-        // LEFT
-        if !(index == 0) && !(index % width == 0) {
-            if val >= &stream[index - 1] {
-                is_low = false;
+            // Go right
+            if !(col == val.len() - 1) {
+                println!(
+                    "  Right: Check {}:{} = {}",
+                    row,
+                    col + 1,
+                    val.get(col + 1).unwrap()
+                );
             }
-        }
-
-        // RIGHT
-        if !(index == (width - 1)) && !(index % width == (width - 1)) {
-            if val >= &stream[index + 1] {
-                is_low = false;
+            // Go down
+            if !(row == field.len() - 1) {
+                println!(
+                    "  Down: Check {}:{} = {}",
+                    row + 1,
+                    col,
+                    field[row + 1].get(col).unwrap()
+                );
             }
-        }
-
-        if is_low == true {
-            acc = acc + val + 1;
         }
     }
-    acc
+    0
 }
