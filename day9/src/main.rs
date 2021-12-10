@@ -2,12 +2,12 @@
 // Advent of Code, Day 9
 
 fn main() -> anyhow::Result<()> {
-    let example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
-    let _input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
+    let _example: Vec<&str> = include_str!("example").trim_end().split('\n').collect();
+    let input: Vec<&str> = include_str!("input").trim_end().split('\n').collect();
 
     // Let's make a 2D Vec
     let mut field: Vec<Vec<u32>> = Vec::new();
-    for nums in example {
+    for nums in input {
         field.push(nums.chars().map(|d| d.to_digit(10).unwrap()).collect());
     }
 
