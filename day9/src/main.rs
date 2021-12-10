@@ -14,8 +14,18 @@ fn main() -> anyhow::Result<()> {
     // Get a vector of low-point coordinates
     let lows = get_lows(&field);
 
-    // TODO: Find. Those. Basins!
+    // Find. Those. Basins!
+    let mut basins: Vec<usize> = Vec::new();
+    let mut visited: Vec<(usize, usize)> = Vec::new();
+    for low in lows {
+        // Get the size of the basin!
+        basins.push(get_basin_livin(&field, &low, &mut visited)); // or get_basin_dying
+    }
 
+    // Find top three and multiply em
+    basins.sort_by(|a, b| a.cmp(b).reverse());
+    basins.truncate(3);
+    println!("Answer: {}", basins[0] * basins[1] * basins[2]);
     Ok(())
 }
 
@@ -49,4 +59,42 @@ fn get_lows(field: &Vec<Vec<u32>>) -> Vec<(usize, usize)> {
         }
     }
     lows
+}
+
+fn get_basin_livin(
+    field: &Vec<Vec<u32>>,
+    low: &(usize, usize),
+    visited: &mut Vec<(usize, usize)>,
+) -> usize {
+    let mut acc = 1;
+    let row = low.0;
+    let col = low.1;
+    let width = field[0].len();
+    let height = field.len();
+
+    // Note that we've visited this position
+    visited.push(*low);
+
+    // If it's not 9, count, and go looking for another
+    if *field[row].get(col).unwrap() == 9 {
+        return 0;
+    } else {
+        // Count left
+        if !(col == 0) && !visited.contains(&(row, col - 1)) {
+            acc = acc + get_basin_livin(&field, &(row, col - 1), visited);
+        }
+        // Count right
+        if !(col == width - 1) && !visited.contains(&(row, col + 1)) {
+            acc = acc + get_basin_livin(&field, &(row, col + 1), visited);
+        }
+        // Count up
+        if !(row == 0) && !visited.contains(&(row - 1, col)) {
+            acc = acc + get_basin_livin(&field, &(row - 1, col), visited);
+        }
+        // Count down
+        if !(row == height - 1) && !visited.contains(&(row + 1, col)) {
+            acc = acc + get_basin_livin(&field, &(row + 1, col), visited);
+        }
+        return acc;
+    }
 }
