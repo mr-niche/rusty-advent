@@ -3,8 +3,29 @@
 
 fn main() -> anyhow::Result<()> {
     // Process our input so we have a stream of integers & height & width
-    let e: Vec<_> = include_str!("input").trim_end().split('\n').collect();
+    let e: Vec<_> = include_str!("example").trim_end().split('\n').collect();
     let width: usize = e[0].chars().count();
+
+    // Let's get creative...
+    let mut field: Vec<isize> = Vec::new();
+
+    // Build a box around the field with '-1's
+    for i in 0..width + 2 {
+        field.push(-1);
+    }
+    for line in e {
+        field.push(-1);
+        for d in line.chars() {
+            field.push(d.to_digit(10).unwrap().try_into().unwrap());
+        }
+        field.push(-1);
+    }
+    for i in 0..width + 2 {
+        field.push(-1);
+    }
+
+    dbg!(&field);
+    dbg!(field.len());
 
     let input: Vec<u32> = include_str!("input")
         .trim_end()
@@ -13,10 +34,16 @@ fn main() -> anyhow::Result<()> {
         .map(|d| d.to_digit(10).unwrap())
         .collect();
 
-    let result = process_lows(&input, &width);
-    dbg!(result);
+    //let result = process_lows(&input, &width);
+    //dbg!(result);
 
     Ok(())
+}
+
+fn wrap_field(field: &Vec<&str>) -> Option<Vec<isize>> {
+    let new_field: Vec<isize> = Vec::new();
+
+    let width: usize = field[0].chars().count();
 }
 
 fn process_lows(stream: &Vec<u32>, width: &usize) -> u32 {
