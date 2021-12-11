@@ -6,15 +6,15 @@ use colored::*;
 #[derive(Debug, Clone, PartialEq, Default)]
 struct Consortium {
     octopuses: Vec<Octopus>,
-    width: usize,
-    height: usize,
+    width: i32,
+    height: i32,
 }
 
 impl Consortium {
     fn print(&self) {
         for row in 0..self.height {
             for col in 0..self.width {
-                let p: Point = (row, col).into();
+                let p: Point = (row.try_into().unwrap(), col.try_into().unwrap()).into();
                 let e = self.get_octopus(&p).unwrap().energy_level;
                 match e {
                     0 => print!("{}", "0".bold()),
@@ -41,6 +41,13 @@ impl Consortium {
         for octopus in &mut self.octopuses {
             octopus.step();
         }
+    }
+    fn get_flash_count(&self) -> u32 {
+        let mut acc = 0;
+        for octopus in &self.octopuses {
+            acc = acc + octopus.flash_count;
+        }
+        acc
     }
 }
 
@@ -78,6 +85,35 @@ struct Point {
 impl From<(usize, usize)> for Point {
     fn from((row, col): (usize, usize)) -> Self {
         Self { row, col }
+    }
+}
+
+impl Point {
+    fn get_adjacent_points(&self, width: i32, height: i32) -> Vec<Point> {
+        let row: i32 = self.row.try_into().unwrap();
+        let col: i32 = self.col.try_into().unwrap();
+        // Start by going right, go clockwise
+        let potential_points: Vec<(i32, i32)> = vec![
+            (row, col + 1),
+            (row + 1, col + 1),
+            (row + 1, col),
+            (row + 1, col - 1),
+            (row, col - 1),
+            (row - 1, col - 1),
+            (row - 1, col),
+            (row - 1, col + 1),
+        ];
+        let mut points: Vec<Point> = Vec::new();
+
+        for point in potential_points {
+            if point.0 >= 0 && point.1 >= 0 && point.0 < height && point.1 < width {
+                points.push(Point {
+                    row: point.0.try_into().unwrap(),
+                    col: point.1.try_into().unwrap(),
+                });
+            }
+        }
+        points
     }
 }
 
@@ -125,11 +161,45 @@ fn main() -> anyhow::Result<()> {
             // 4. Print
             println!("After step {}:", step);
             consortium.print();
+            println!("Flash count: {}", consortium.get_flash_count());
             println!();
         }
     }
 
     Ok(())
+}
+
+#[test]
+fn test_get_adjacent_points() {
+    let width = 10;
+    let height = 10;
+
+    // Corner case (ha!) - Upper left
+    let mut point = Point { row: 0, col: 0 };
+    let mut points = point.get_adjacent_points(width, height);
+    let mut expected: Vec<Point> = vec![(0, 1).into(), (1, 1).into(), (1, 0).into()];
+    assert_eq!(expected, points);
+
+    // Middle case
+    point = Point { row: 3, col: 5 };
+    points = point.get_adjacent_points(width, height);
+    expected = vec![
+        (3, 6).into(),
+        (4, 6).into(),
+        (4, 5).into(),
+        (4, 4).into(),
+        (3, 4).into(),
+        (2, 4).into(),
+        (2, 5).into(),
+        (2, 6).into(),
+    ];
+    assert_eq!(expected, points);
+
+    // Corner case (ha!) - Lower right
+    point = Point { row: 9, col: 9 };
+    points = point.get_adjacent_points(width, height);
+    expected = vec![(9, 8).into(), (8, 8).into(), (8, 9).into()];
+    assert_eq!(expected, points);
 }
 
 #[test]
